@@ -7,6 +7,8 @@ class LatticeSystem:
         self.size = size
         self.system = np.ones((size, size), dtype=bool)  # Initialize all nodes as operational
         self.failure_times = np.zeros((size, size))       # Initialize failure times as 0
+        if not os.path.isdir("system_states"):
+            os.mkdir("system_states")
 
     def simulate(self, total_time):
         time = 0
