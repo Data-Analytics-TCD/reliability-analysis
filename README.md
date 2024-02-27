@@ -1,0 +1,1 @@
+# ReliabilityAnalysisofaConsecutive-r-s--out-of--m-n-FSphericalLatticeSystemWithRepairableElements
