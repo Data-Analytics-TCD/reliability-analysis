@@ -1,0 +1,83 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import os
+
+class LatticeSystem:
+    def __init__(self, size, r, s):
+        self.size = size
+        self.system = np.ones((size, size), dtype=bool)  # Initialize all nodes as operational
+        self.failure_times = np.zeros((size, size))      # Initialize failure times as 0
+        self.r = r  # Number of consecutive rows for submatrix failure
+        self.s = s  # Number of consecutive columns for submatrix failure
+        self.threshold = 2 * r * s  # Failure threshold based on the paper
+        if not os.path.isdir("system_states"):
+            os.mkdir("system_states")
+
+    def simulate(self, total_time):
+        time = 0
+        first_iteration = True
+
+        while time < total_time:
+            if first_iteration:
+                self.save_image(time)
+                first_iteration = False
+                time += np.random.exponential(scale=0.5)  # Increment time slightly to avoid zero
+                continue  # Skip the rest of the loop
+
+            num_failures = np.random.randint(1, 4)
+            for _ in range(num_failures):
+                row = np.random.randint(self.size)
+                col = np.random.randint(self.size)
+                failure_time = time + np.random.exponential(scale=0.5)
+                self.failure_times[row, col] = failure_time
+                self.system[row, col] = False
+
+            self.save_image(time)
+            if self.check_submatrix_failure() or self.check_total_failure():
+                print(f"System failed at time: {time}")
+                break
+
+            non_zero_failures = self.failure_times[self.failure_times > 0]
+            if non_zero_failures.size > 0:
+                next_event_time = np.min(non_zero_failures)
+                time = next_event_time  # Advance time to next event
+
+            for i in range(self.size):
+                for j in range(self.size):
+                    if not self.system[i, j] and self.failure_times[i, j] <= time:
+                        self.system[i, j] = True
+                        self.failure_times[i, j] = 0
+
+            self.save_image(time)
+
+            if np.all(self.failure_times == 0) and not (self.check_submatrix_failure() or self.check_total_failure()):
+                print(f"System did not fail within the simulated time frame.")
+                break
+
+    def check_submatrix_failure(self):
+        for i in range(self.size - self.r + 1):
+            for j in range(self.size - self.s + 1):
+                if np.all(~self.system[i:i+self.r, j:j+self.s]):
+                    return True
+        return False
+    
+    def check_total_failure(self):
+        return np.sum(~self.system) >= self.threshold
+    
+    def save_image(self, time):
+        plt.figure(figsize=(6, 6))
+        plt.imshow(self.system, cmap='gray', interpolation='nearest', vmin=0, vmax=1)
+        plt.title(f'Time: {time:.2f}')
+        plt.xticks(np.arange(0, self.size), np.arange(0, self.size))
+        plt.yticks(np.arange(0, self.size), np.arange(0, self.size))
+        plt.xlabel('Column')
+        plt.ylabel('Row')
+        plt.grid(False)
+        plt.savefig(os.path.join("system_states", f"system_state_{time:.2f}.png"))
+        plt.close()
+
+# Simulation parameters
+r, s = 2, 2
+total_time = 15
+system = LatticeSystem(size=4, r=r, s=s)
+system.simulate(total_time)
