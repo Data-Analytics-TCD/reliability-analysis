@@ -29,10 +29,10 @@ class Node:
             self.timeline[time_accrued] = working
 
     def fail(self):
-        return np.random.exponential(fr)
+        return np.random.exponential(1/self.fr)
 
     def repair(self):
-        return np.random.exponential(rr)
+        return np.random.exponential(1/self.rr)
 
 class Submatrix:
     def __init__(self, nodes) -> None:
@@ -80,7 +80,7 @@ class Submatrix:
             if self.timeline[time]:
                 total_uptime += time - previous_time
             previous_time = time
-        return total_uptime / len(self.repairs)
+        return total_uptime / (len(self.repairs) + 1)
 
     def get_downtime_avg(self):
         if not self.fails:
@@ -148,10 +148,10 @@ class LatticeSystem:
 
 if __name__ == '__main__':
     # Simulation parameters
-    sim_times = [10, 100, 1000]
+    sim_times = [10, 100]
     mns = [(3, 3), (10, 10), (50, 50), (100, 100)]
     rss = [(2, 2), (3, 3), (5, 5), (10, 10)]
-    frs = [(1, 1), (1, 2.5), (1, 5), (1, 10), (2, 20)]
+    frs = [(10, 10), (10, 5), (10, 2.5), (10, 1)]
     with open('simulation_results.csv', 'w', newline='') as file:
         fieldnames = ['sim_time', '(m,n)', '(r,s)', 'fail_rate', 'repair_rate', 'iteration', 'mttf', 'mttr', 'ff', 'fr', 'elapsed_time']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
