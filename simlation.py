@@ -23,10 +23,11 @@ class Node:
         time_accrued = 0
         while time_accrued < sim_time:
             time_accrued += np.random.exponential(1 / (self.fr if working else self.rr))
-            correct_list = self.fails if working else self.repairs
-            correct_list.append(time_accrued)
-            working = not working
-            self.timeline[time_accrued] = working
+            if time_accrued < sim_time:
+                correct_list = self.fails if working else self.repairs
+                correct_list.append(time_accrued)
+                working = not working
+                self.timeline[time_accrued] = working
 
 class Submatrix:
     def __init__(self, nodes) -> None:
@@ -189,7 +190,6 @@ class LatticeSystem:
 
 if __name__ == '__main__':
     # Simulation parameters
-    
     mns = [(3,3), (5,5), (10, 10), (25,25), (30,30), (50, 50) ]
     rss = [(2,2), (3,3), (5, 5), (8, 8), (10, 10)]
     frs = [(10, 10), (10, 7.5), (10, 5), (10, 2.5)]
